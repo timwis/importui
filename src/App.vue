@@ -27,11 +27,12 @@
                 </tr>
                 <tr>
                   <th
-                    v-for="(col, index) in header"
-                    :key="'dest-' + col">
+                    v-for="(col, colIndex) in header"
+                    :key="'dest-' + col"
+                    :class="{ 'is-ignored': mappings[colIndex] === '__ignore' }">
                     <b-field>
                       <b-select
-                        v-model="mappings[index]"
+                        v-model="mappings[colIndex]"
                         placeholder="Map to field"
                         required>
                         <option value="__ignore">Ignore this column</option>
@@ -47,11 +48,12 @@
               </thead>
               <tbody>
                 <tr
-                  v-for="(row, index) in previewData"
-                  :key="index">
+                  v-for="(row, rowIndex) in previewData"
+                  :key="rowIndex">
                   <td
-                    v-for="col in header"
-                    :key="'preview-' + index + '-' + col">
+                    v-for="(col, colIndex) in header"
+                    :key="'preview-' + rowIndex + '-' + col"
+                    :class="{ 'is-ignored': mappings[colIndex] === '__ignore' }">
                     {{ row[col] }}
                   </td>
                 </tr>
@@ -161,5 +163,11 @@ export default {
       overflow: hidden;
       text-overflow: ellipsis;
     }
+  }
+
+  th.is-ignored,
+  td.is-ignored {
+    background-color: #f5f5f5;
+    color: hsla(0,0%,48%,.7);
   }
 </style>
