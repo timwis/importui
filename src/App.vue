@@ -10,55 +10,60 @@
         <FileUploader @input="onSelectFile" />
       </b-step-item>
 
-      <b-step-item step="2" label="Map fields">
-        <h1 class="title has-text-centered">Map fields</h1>
-        <div
-          v-if="header"
-          class="table-container">
-          <table class="table is-striped preview">
-            <thead>
-              <tr>
-                <th
-                  v-for="col in header"
-                  :key="'source-' + col">
-                  {{ col }}
-                </th>
-              </tr>
-              <tr>
-                <th
-                  v-for="(col, index) in header"
-                  :key="'dest-' + col">
-                  <b-field>
-                    <b-select v-model="mappings[index]">
-                      <option value="">Ignore this column</option>
-                      <option
-                        v-for="property in schemaProperties"
-                        :key="property">
-                        {{ property }}
-                      </option>
-                    </b-select>
-                  </b-field>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(row, index) in previewData"
-                :key="index">
-                <td
-                  v-for="col in header"
-                  :key="'preview-' + index + '-' + col">
-                  {{ row[col] }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <b-button
-          type="is-primary"
-          @click="onClickUpload">
-          Upload
-        </b-button>
+      <b-step-item step="2" label="Map columns">
+        <h1 class="title has-text-centered">Map columns</h1>
+        <form @submit.prevent="onClickUpload">
+          <div
+            v-if="header"
+            class="table-container">
+            <table class="table is-striped preview">
+              <thead>
+                <tr>
+                  <th
+                    v-for="col in header"
+                    :key="'source-' + col">
+                    {{ col }}
+                  </th>
+                </tr>
+                <tr>
+                  <th
+                    v-for="(col, index) in header"
+                    :key="'dest-' + col">
+                    <b-field>
+                      <b-select
+                        v-model="mappings[index]"
+                        placeholder="Map to field"
+                        required>
+                        <option value="__ignore">Ignore this column</option>
+                        <option
+                          v-for="property in schemaProperties"
+                          :key="property">
+                          {{ property }}
+                        </option>
+                      </b-select>
+                    </b-field>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(row, index) in previewData"
+                  :key="index">
+                  <td
+                    v-for="col in header"
+                    :key="'preview-' + index + '-' + col">
+                    {{ row[col] }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <button
+            type="submit"
+            class="button is-primary">
+            Upload
+          </button>
+        </form>
       </b-step-item>
       <b-step-item step="3" label="Upload">
         <h1 class="title has-text-centered">Upload</h1>
@@ -99,6 +104,9 @@ export default {
   computed: {
     schemaProperties () {
       return Object.keys(this.schema.properties)
+    },
+    mappingsWithIgnoresProcessed () {
+      return this.mappings.map((column) => (column === '__ignore') ? null : column)
     }
   },
   methods: {
@@ -108,14 +116,14 @@ export default {
       this.header = header
       this.previewData = sampleRows
       this.count = count
-      this.mappings = new Array(this.header.length).fill('')
+      this.mappings = new Array(this.header.length)
       this.activeStep = 1
     },
     async onClickUpload () {
       this.activeStep++
       await upload({
         file: this.file,
-        header: this.mappings,
+        header: this.mappingsWithIgnoresProcessed,
         delay: 200,
         uploadFn: (data) => {
           return client.post('/users', data)
