@@ -4,6 +4,7 @@ import csv from 'csv-parser'
 import delay from 'delay'
 import { curry } from 'lodash'
 import { write, tap, reduce, pipe } from 'bluestream'
+import 'setimmediate' // required for bluestream
 
 interface PreviewResult {
   count: number,
