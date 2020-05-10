@@ -2,17 +2,17 @@ import _ from 'lodash'
 import { isValid, parseISO } from 'date-fns'
 
 // Mutates state for performance
-export function analyse (state, row) {
+export function analyse (state: any, row: any) {
   return Object.entries(row)
     .reduce((accum, [key, value]) => {
-      const type = detectType(value)
+      const type = detectType(value as string)
       accum[key] = accum[key] || {}
       accum[key][type] = (accum[key][type] + 1) || 1
       return accum
     }, state)
 }
 
-export const detectType = _.cond([
+export const detectType: (value: string) => string = _.cond([
   [isEmptyString, _.constant('null')],
   [isISODate, _.constant('date')],
   [isISODateTime, _.constant('datetime')],
