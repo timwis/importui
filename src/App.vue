@@ -68,7 +68,12 @@
       <b-step-item step="3" label="Upload">
         <h1 class="title has-text-centered">Upload</h1>
 
-        <b-progress :value="progress / count * 100" />
+        <b-progress
+          :value="progress / count * 100"
+          type="is-success"
+          show-value>
+          {{ progress }} / {{ count }}
+        </b-progress>
       </b-step-item>
     </b-steps>
 
