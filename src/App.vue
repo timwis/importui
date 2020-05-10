@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1 class="title">Import UI</h1>
+    <h1 class="title">{{ title }}</h1>
 
     <b-steps
       v-model="activeStep"
@@ -84,10 +84,10 @@
 import FileUploader from '@/components/FileUploader'
 import { getPreview, upload } from '@/lib/csv'
 import axios from 'axios'
-import schema from '../tests/fixtures/user.schema.json'
+import config from '@/config'
 
 const client = axios.create({
-  baseURL: 'https://enlf6yd1r00m.x.pipedream.net/'
+  baseURL: config.baseURL
 })
 
 export default {
@@ -96,9 +96,10 @@ export default {
   },
   data () {
     return {
+      title: config.title,
       progress: 0,
       activeStep: 0,
-      schema,
+      schema: config.schema,
       file: null,
       header: null,
       previewData: null,
@@ -131,8 +132,11 @@ export default {
         header: this.mappingsWithIgnoresProcessed,
         delay: 200,
         uploadFn: (data) => {
-          return client.post('/users', data)
-            .then(() => { this.progress++ })
+          return client({
+            data,
+            url: config.url,
+            method: config.method
+          }).then(() => { this.progress++ })
         }
       })
     }
