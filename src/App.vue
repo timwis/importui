@@ -132,14 +132,13 @@ export default {
       await upload({
         file: this.file,
         header: this.mappingsWithIgnoresProcessed,
-        delay: 200,
-        uploadFn: (data) => {
-          return client({
-            data,
-            url: config.url,
-            method: config.method
-          }).then(() => { this.progress++ })
-        }
+        delayMs: 200,
+        onProgress: () => this.progress++,
+        uploadFn: (data) => client({
+          data,
+          url: config.url,
+          method: config.method
+        })
       })
     }
   }

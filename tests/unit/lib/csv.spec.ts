@@ -55,11 +55,11 @@ describe('upload', () => {
     let shouldBeDelaying = false
     await upload({
       file,
-      delayMs: 100,
+      delay: 5,
       uploadFn: async (_data) => {
         expect(shouldBeDelaying).toBe(false)
         shouldBeDelaying = true
-        setTimeout(() => { shouldBeDelaying = false }, 100)
+        setTimeout(() => { shouldBeDelaying = false }, 5)
       }
     })
   })

@@ -1,10 +1,8 @@
 // @ts-ignore
 import fileReaderStream from 'filereader-stream'
 import csv from 'csv-parser'
-import delay from 'delay'
 import { curry } from 'lodash'
-import { write, tap, reduce, pipe } from 'bluestream'
-import 'setimmediate' // required for bluestream
+import H from 'highland'
 
 interface PreviewResult {
   count: number,
@@ -19,34 +17,38 @@ export async function getPreview (file: File, numRows = 0): Promise<PreviewResul
     header: []
   }
 
-  return pipe(
-    fileReaderStream(file),
-    csv(),
-    reduce(analyse(numRows), initial)
-  )
+  return H(fileReaderStream(file))
+    .through(csv())
+    .reduce(initial, analyse(numRows))
+    .toPromise(Promise)
 }
 
 interface UploadOptions {
   file: File,
   header?: string[],
-  delayMs?: number,
-  uploadFn: (data: object) => Promise<void>
+  delay?: number,
+  uploadFn: (data: object) => Promise<void>,
+  onProgress?: (data: void) => void
 }
 
 export async function upload ({
   file,
   header,
-  delayMs,
-  uploadFn
+  delay = 0,
+  uploadFn,
+  onProgress = () => {}
 }: UploadOptions): Promise<void> {
   const csvOpts = header ? { headers: header, skipLines: 1 } : {}
 
-  return pipe(
-    fileReaderStream(file),
-    csv(csvOpts),
-    tap(() => delayMs && delay(delayMs)),
-    write(uploadFn)
-  )
+  return new Promise((resolve, reject) => {
+    H(fileReaderStream(file))
+      .through(csv(csvOpts))
+      .ratelimit(1, delay)
+      .flatMap((row: any) => H(uploadFn(row)))
+      .tap(onProgress)
+      .stopOnError(reject)
+      .done(resolve)
+  })
 }
 
 const analyse = curry((numRows: number, accum: PreviewResult, row: object) => {
